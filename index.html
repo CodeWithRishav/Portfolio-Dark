@@ -4,6 +4,60 @@
     <meta charset="utf-8" data-next-head="" />
     <meta name="viewport" content="width=device-width" data-next-head="" />
     <title data-next-head="">Rishav Kumar</title>
+    <style id="custom-hide-gamma">
+      /* Pre-emptively hide common Gamma credit/badge variants */
+      a[href*="gamma.app"][style*="position: fixed"],
+      a[href*="gamma.app"][class*="gamma"],
+      a[href*="gamma.app"][class*="badge"],
+      a[href*="gamma.app"][class*="credit"],
+      .made-with-gamma,
+      [data-testid="made-with-gamma"],
+      [class*="made-with-gamma"] {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+    </style>
+
+    <!-- Extra hardening: hide Gamma iframes and any missed variants -->
+    <style id="custom-hide-gamma-extend">
+      /* If the badge is inside an iframe from Gamma, hide the iframe itself */
+      iframe[src*="gamma.app"],
+      iframe[src*="gammahosted.com"],
+      iframe[title*="gamma" i] {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+      /* Broaden selectors a bit more */
+      a[href*="gamma.app"],
+      a[href*="gammahosted.com"],
+      [aria-label*="made with gamma" i],
+      [title*="made with gamma" i],
+      [id*="made-with-gamma" i],
+      [class*="made-with-gamma" i] {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+
+      /* Hide "Report this site" buttons/links (Gamma and similar variants) */
+      a[href*="/report" i],
+      a[href*="gamma.app/report" i],
+      a[href*="gammahosted.com/report" i],
+      button[aria-label*="report" i],
+      button[class*="report" i],
+      button[id*="report" i],
+      [aria-label*="report this site" i],
+      [title*="report this site" i],
+      [class*="report-this-site" i],
+      [id*="report-this-site" i],
+      [data-testid*="report" i] {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+    </style>
     <meta name="robots" content="noindex, nofollow" data-next-head="" />
     <meta
       content="Developer | AI/ML Enthusiast | Community Leader Get In Touch View LinkedIn"
@@ -7642,6 +7696,70 @@
     </style>
   </head>
   <body>
+    <!-- Remove dynamically injected "Report this site" buttons/links -->
+    <script>
+      (function () {
+        const SELECTORS = [
+          'a[href*="/report" i]',
+          'a[href*="gamma.app/report" i]',
+          'a[href*="gammahosted.com/report" i]',
+          'button[aria-label*="report" i]',
+          'button[class*="report" i]',
+          'button[id*="report" i]',
+          '[aria-label*="report this site" i]',
+          '[title*="report this site" i]',
+          '[class*="report-this-site" i]',
+          '[id*="report-this-site" i]',
+          '[data-testid*="report" i]'
+        ].join(',');
+
+        const TEXT_MATCHES = ['report this site', 'report abuse', 'report site'];
+
+        function nuke(root = document) {
+          // Attribute-based removal
+          root.querySelectorAll(SELECTORS).forEach(el => {
+            try { el.remove(); } catch {}
+          });
+
+          // Text-based fallback (only for likely buttons/links)
+          root.querySelectorAll('a,button,[role="button"],div,span').forEach(el => {
+            try {
+              const t = (el.innerText || '').trim().toLowerCase();
+              if (!t) return;
+              if (TEXT_MATCHES.some(x => t.includes(x))) {
+                const pos = getComputedStyle(el).position;
+                if (pos === 'fixed' || pos === 'sticky' || t === 'report this site') el.remove();
+              }
+            } catch {}
+          });
+        }
+
+        function start() {
+          nuke();
+          const mo = new MutationObserver(muts => {
+            for (const m of muts) {
+              for (const n of m.addedNodes || []) {
+                if (n && n.nodeType === 1) nuke(n);
+              }
+            }
+          });
+          mo.observe(document.documentElement, { childList: true, subtree: true });
+
+          // A few retries for late async inserts
+          let i = 0;
+          const iv = setInterval(() => {
+            nuke();
+            if (++i > 10) clearInterval(iv);
+          }, 300);
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', start, { once: true });
+        } else {
+          start();
+        }
+      })();
+    </script>
     <link
       rel="preload"
       as="image"
@@ -17930,7 +18048,7 @@
         </div>
       </div>
     </div>
-   
+
     <span id="__chakra_env" hidden=""></span>
     <script
       data-cfasync="false"
